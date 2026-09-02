@@ -9,22 +9,21 @@
 #include <random>
 #include <stdexcept>
 namespace mini_ai {
+// DOCUMENTACIÓN_AQUÍ: Este archivo implementa el flujo completo: tensores y
+// embeddings, atención causal con máscara j<=t, pérdida cross-entropy, retropropagación,
+// Adam y persistencia de checkpoints. La máscara evita mirar tokens futuros.
 static float &M(Tensor &x, std::size_t i, std::size_t j) {
     return x[i * x.shape()[1] + j];
 }
 static float M(const Tensor &x, std::size_t i, std::size_t j) {
     return x[i * x.shape()[1] + j];
 }
-static float &M(Tensor &x, std::size_t i) {
-    return x[i];
-}
-static float M(const Tensor &x, std::size_t i) {
-    return x[i];
-}
 static void zero(std::vector<Tensor> &a) {
     for (auto &x : a)
         std::fill(x.data(), x.data() + x.size(), 0.f);
 }
+// DOCUMENTACIÓN_AQUÍ: step aplica Adam a todos los tensores y conserva sus momentos;
+// por eso un checkpoint puede continuar el entrenamiento sin perder el ritmo adaptativo.
 void Adam::step(std::vector<Tensor> &p, const std::vector<Tensor> &g, float lr, float b1, float b2,
                 float eps) {
     if (m_.empty()) {
@@ -110,6 +109,8 @@ std::size_t Model::parameters() const {
         n += p.size();
     return n;
 }
+// DOCUMENTACIÓN_AQUÍ: train_batch calcula la pérdida softmax cross-entropy y sus
+// gradientes. train loss baja cuando el modelo asigna más probabilidad al siguiente byte.
 float Model::train_batch(const Batch &b) {
     if (b.batch == 0 || b.seq != c_.seq || b.x.size() != b.y.size() ||
         b.x.size() != b.batch * b.seq)
@@ -270,18 +271,23 @@ float Model::train_batch(const Batch &b) {
         }
     }
     update();
-    return loss / float(b.batch * c_.seq);
+    return loss / float(b.batch * S);
 }
 void Model::update() {
     adam_->step(p_, g_);
     ++steps_;
 }
+// DOCUMENTACIÓN_AQUÍ: logits repite el forward causal para inferencia; sólo se
+// muestrea el último estado, sin consultar posiciones posteriores.
 std::vector<float> Model::logits(const std::vector<int> &ids) {
     if (ids.empty())
         return std::vector<float>(c_.vocab, 0.f);
     std::vector<int> x = ids;
     if (x.size() > c_.seq)
         x.erase(x.begin(), x.end() - c_.seq);
+    for (int id : x)
+        if (id < 0 || std::size_t(id) >= c_.vocab)
+            throw std::invalid_argument("token out of range");
     const size_t S = x.size(), D = c_.d_model, F = c_.d_ff;
     std::vector<std::vector<float>> q(S, std::vector<float>(D)),
         k = q, val = q, z = q, h = q, pre(S, std::vector<float>(F)), ff = pre,
@@ -356,6 +362,9 @@ std::vector<int> Model::generate(std::vector<int> ids, std::size_t n, float temp
     }
     return ids;
 }
+// DOCUMENTACIÓN_AQUÍ: El checkpoint MAI3 guarda configuración, pasos, parámetros y
+// momentos Adam. Las validaciones de load convierten archivos incompatibles o truncados
+// en errores explícitos en lugar de continuar con estado corrupto.
 void Model::save(const std::string &f) const {
     std::ofstream o(f, std::ios::binary);
     if (!o)
