@@ -38,8 +38,11 @@ void Adam::step(std::vector<Tensor> &p, const std::vector<Tensor> &g, float lr, 
             v_.emplace_back(q.shape());
         }
     }
-    if (m_.size() != p.size())
-        throw std::runtime_error("optimizer parameter mismatch");
+    if (m_.size() != p.size() || g.size() != p.size())
+        throw std::runtime_error("optimizer parameter/gradient mismatch");
+    for (std::size_t k = 0; k < p.size(); ++k)
+        if (m_[k].shape() != p[k].shape() || g[k].shape() != p[k].shape())
+            throw std::runtime_error("optimizer tensor shape mismatch");
     ++t_;
     float c1 = 1 - std::pow(b1, float(t_)), c2 = 1 - std::pow(b2, float(t_));
     for (std::size_t k = 0; k < p.size(); ++k)
@@ -127,7 +130,8 @@ float Model::train_batch(const Batch &b) {
     for (std::size_t n = 0; n < b.batch; n++) {
         const std::size_t S = c_.seq, D = c_.d_model, F = c_.d_ff, Vc = c_.vocab;
         std::vector<std::vector<float>> x(S, std::vector<float>(D)),
-            q = x, k = x, val = x, z(S, std::vector<float>(D)), h = x,
+            q(S, std::vector<float>(D)), k(S, std::vector<float>(D)),
+            val(S, std::vector<float>(D)), z(S, std::vector<float>(D)), h = x,
             pre(S, std::vector<float>(F)), ff = pre, o = x, lg(S, std::vector<float>(Vc)),
             a(S, std::vector<float>(S));
         for (std::size_t t = 0; t < S; t++) {
@@ -223,25 +227,19 @@ float Model::train_batch(const Batch &b) {
                 M(g_[9], d) += go[d];
             std::vector<std::vector<float>> gq(S, std::vector<float>(D)),
                 gk = gq, gv = gq, gx(S, std::vector<float>(D));
+            // Backpropagate residual attention: h = x + z W_o, z = A V.
             for (std::size_t d = 0; d < D; d++) {
                 for (std::size_t e = 0; e < D; e++) {
                     M(g_[5], e, d) += z[t][e] * gh[d];
-                }
-                for (std::size_t e = 0; e < D; e++)
                     gx[t][e] += gh[d] * (e == d);
-                for (std::size_t j = 0; j <= t; j++) {
-                    float ga = 0;
-                    for (std::size_t e = 0; e < D; e++) {
-                        gv[j][e] += a[t][j] * gh[e] * M(p_[5], e, d);
-                        ga += gh[e] * M(p_[5], d, e) * val[j][e];
-                    } /* ga is corrected below by direct sum */
                 }
             }
             std::vector<float> ga(S);
+            // dV = A^T dZ and dA = dZ V^T; only j <= t is active.
             for (std::size_t j = 0; j <= t; j++)
                 for (std::size_t d = 0; d < D; d++)
-                    ga[j] +=
-                        gh[d] * M(p_[5], d, d) * 0.f; // retained for clarity; recompute exact below
+                    for (std::size_t e = 0; e < D; e++)
+                        gv[j][e] += a[t][j] * gh[d] * M(p_[5], e, d);
             for (std::size_t j = 0; j <= t; j++) {
                 ga[j] = 0;
                 for (std::size_t d = 0; d < D; d++)
@@ -276,9 +274,14 @@ float Model::train_batch(const Batch &b) {
                 }
         }
     }
+    // Cross-entropy is averaged over tokens; scale gradients identically so the
+    // learning rate is independent of batch size and sequence length.
+    const float inv_tokens = 1.f / float(b.batch * c_.seq);
+    for (auto &g : g_)
+        for (std::size_t i = 0; i < g.size(); ++i)
+            g[i] *= inv_tokens;
     update();
-    // Average the loss over every token in the batch.
-    return loss / float(b.batch * c_.seq);
+    return loss * inv_tokens;
 }
 void Model::update() {
     adam_->step(p_, g_);
@@ -387,6 +390,8 @@ void Model::save(const std::string &f) const {
         o.write((char *)p.data(), z * sizeof(float));
     }
     adam_->save(o);
+    if (!o)
+        throw std::runtime_error("checkpoint write failed");
 }
 void Model::load(const std::string &f) {
     std::ifstream i(f, std::ios::binary);
@@ -398,6 +403,8 @@ void Model::load(const std::string &f) {
         throw std::runtime_error("invalid checkpoint version");
     Config c;
     i.read((char *)&c, sizeof c);
+    if (!i)
+        throw std::runtime_error("truncated checkpoint");
     if (c.vocab != c_.vocab || c.seq != c_.seq || c.d_model != c_.d_model || c.d_ff != c_.d_ff)
         throw std::runtime_error("checkpoint configuration mismatch");
     i.read((char *)&steps_, sizeof steps_);
