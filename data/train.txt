@@ -1,0 +1,4 @@
+hola mundo. hola mundo. esta es una inteligencia artificial pequena.
+Aprendo patrones de texto con bytes y una red neuronal diminuta.
+El aprendizaje ocurre ajustando pesos mediante descenso de gradiente.
+Puedes reemplazar este archivo con tus propios textos para entrenar el modelo.
