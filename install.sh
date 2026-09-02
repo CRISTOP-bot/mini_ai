@@ -2,23 +2,19 @@
 #
 # DOCUMENTACIÓN_AQUÍ
 # Instalador remoto/local de mini_ai C++20 para Termux.
-# Puede ejecutarse directamente desde el repositorio o mediante:
-# curl -fsSL <URL_RAW> | bash
-# En modo remoto descarga la rama cpp20-rewrite y vuelve a ejecutarse localmente.
+# Uso remoto: curl -4 -fsSL URL | bash
+# Si se ejecuta por pipe, descarga la rama C++ y luego compila localmente.
 #
 set -eo pipefail
 
 REPO_URL="https://github.com/CRISTOP-bot/mini_ai"
 BRANCH="cpp20-rewrite"
-SCRIPT_SOURCE="${BASH_SOURCE[0]:-}"
-SCRIPT_DIR=""
-if [[ -n "$SCRIPT_SOURCE" && -f "$SCRIPT_SOURCE" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" 2>/dev/null && pwd || true)"
-fi
 
-say() { printf '\n[mini_ai] %s\n' "$1"; }
+say() {
+    printf '\n[mini_ai] %s\n' "$1"
+}
 
-if [[ ! -f "${SCRIPT_DIR}/CMakeLists.txt" ]]; then
+if [[ ! -f "./CMakeLists.txt" ]]; then
     if ! command -v pkg >/dev/null 2>&1; then
         printf '[ERROR] Ejecuta este instalador dentro de Termux.\n' >&2
         exit 1
@@ -35,10 +31,11 @@ if [[ ! -f "${SCRIPT_DIR}/CMakeLists.txt" ]]; then
 
     say "Descargando mini_ai (${BRANCH})"
     git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TARGET"
-    exec bash "$TARGET/install.sh" "$@"
+    cd "$TARGET"
+    exec bash ./install.sh "$@"
 fi
 
-PROJECT_DIR="$SCRIPT_DIR"
+PROJECT_DIR="$(pwd)"
 BUILD_DIR="${PROJECT_DIR}/build"
 
 if ! command -v pkg >/dev/null 2>&1; then
