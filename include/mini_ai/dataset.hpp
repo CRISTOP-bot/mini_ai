@@ -24,6 +24,8 @@ class Dataset {
         return ids_.size();
     }
     Batch sample(std::size_t batch) {
+        if (batch == 0)
+            throw std::invalid_argument("batch must be nonzero");
         Batch b;
         b.batch = batch;
         b.seq = seq_;
