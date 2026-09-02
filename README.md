@@ -11,7 +11,9 @@ cd mini_ai
 python test.py
 python train.py data/train.txt
 python generate.py
-# o: python generate.py "hola"
+python generate.py "hola"
+# Más variedad: temperatura y top-k
+python generate.py --temperature 0.8 --top-k 20 --tokens 120 "hola"
 ```
 No requiere gcc, cmake, NumPy, CUDA, TensorFlow ni PyTorch. `STEPS=100 python train.py data/train.txt` sirve para pruebas rápidas. En teléfonos modestos empieza con 100–1000 pasos; Python puro es deliberadamente lento.
 
