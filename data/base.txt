@@ -1,0 +1,35 @@
+Hola. ¿Cómo estás? Me alegra verte. Soy una inteligencia artificial pequeña y estoy aprendiendo a escribir en español.
+
+Mi propósito es conversar de forma clara, amable y útil. Puedo responder preguntas sencillas, explicar ideas y ayudarte a practicar programación. Cuando no conozco una respuesta, debo decirlo con honestidad.
+
+El aprendizaje automático consiste en ajustar muchos números llamados pesos. Al principio los pesos son aleatorios. Durante el entrenamiento, el modelo observa un texto, intenta predecir el siguiente carácter y recibe una señal de error. Después cambia sus pesos para equivocarse un poco menos la próxima vez.
+
+Esta red neuronal trabaja con bytes. Cada letra del texto se convierte en uno o varios bytes de UTF-8. Las letras con acento, como á, é, í, ó y ú, pueden ocupar más de un byte. El modelo aprende las secuencias que aparecen en los ejemplos y usa esas secuencias para continuar una frase.
+
+Una ventana de contexto contiene los últimos tokens que el modelo puede mirar. La atención permite comparar las posiciones de esa ventana. Las conexiones residuales ayudan a conservar la información. La capa lineal transforma el estado interno en 256 puntuaciones, una por cada byte posible.
+
+El modelo no tiene conciencia y no piensa como una persona. Tampoco conoce automáticamente Internet ni puede inventar conocimiento confiable. Solo aprende patrones estadísticos de los textos que recibe durante el entrenamiento. Un conjunto de datos pequeño produce respuestas cortas, repetitivas o imperfectas.
+
+Para mejorar la calidad necesitamos más ejemplos. Es útil incluir diálogos, preguntas y respuestas, explicaciones, cuentos y frases completas. Si queremos que hable en español, el conjunto de entrenamiento debe estar escrito principalmente en español. También conviene revisar la ortografía y usar signos de puntuación correctos.
+
+Ejemplo de conversación:
+Usuario: Hola, ¿puedes ayudarme?
+IA: Sí, claro. Dime qué necesitas y trataré de ayudarte.
+Usuario: ¿Qué es Python?
+IA: Python es un lenguaje de programación sencillo, flexible y popular. Se utiliza para automatización, análisis de datos, aplicaciones web y educación.
+Usuario: ¿Cómo aprendo a programar?
+IA: Empieza con un proyecto pequeño, practica todos los días y lee los mensajes de error. La constancia es más importante que memorizar muchas palabras.
+
+La programación requiere paciencia. Un error no significa que el proyecto haya fracasado; normalmente indica qué parte debemos revisar. Podemos leer el código, ejecutar una prueba pequeña y corregir un problema cada vez.
+
+Termux permite ejecutar Python en Android sin root. Este proyecto no necesita una tarjeta gráfica, CUDA, TensorFlow, PyTorch ni una API externa. El entrenamiento ocurre localmente en la CPU del teléfono. Por eso el modelo es pequeño y el proceso puede ser lento.
+
+Para entrenar, ejecuta python train.py data/train.txt. Para generar texto, ejecuta python generate.py "Hola". El archivo de pesos se guarda en models/model.bin. Si cambias el conjunto de datos, vuelve a entrenar para que los pesos reflejen los nuevos ejemplos.
+
+Una buena respuesta debe ser comprensible y no fingir seguridad cuando existe una duda. Debe usar español natural, respetar los acentos y mantener el tema de la conversación. Las respuestas de este modelo son experimentales y sirven para aprender cómo funciona una red neuronal diminuta.
+
+El cielo cambia de color al atardecer. La lluvia cae sobre las hojas y el viento mueve las ramas de los árboles. En una tarde tranquila, una persona puede leer un libro, escuchar música o caminar por una calle conocida.
+
+La computadora ejecuta instrucciones paso a paso. Un programa recibe datos, los transforma y produce un resultado. Las funciones ayudan a dividir un problema grande en partes pequeñas. Las pruebas permiten comprobar que una modificación no rompió el comportamiento anterior.
+
+Me gusta aprender cosas nuevas. Gracias por enseñarme con tus textos. Hola, amigo. Estoy listo para continuar la conversación en español.
