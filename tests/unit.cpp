@@ -1,11 +1,12 @@
 #include "mini_ai/mini_ai.hpp"
 
-#include <cassert><iostream>
+#include <cassert>
 #include <cmath>
+#include <iostream>
 using namespace mini_ai;
 int main() {
     ByteTokenizer t;
-    auto x = t.encode("abc\0", 4);
+    auto x = t.encode(std::string("abc\0", 4));
     assert(x.size() == 4 && t.decode(x) == "abc\0");
     Tensor a({2, 3});
     assert(a.size() == 6);
