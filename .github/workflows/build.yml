@@ -40,7 +40,7 @@ jobs:
 
       - name: Run command-line smoke tests
         run: |
-          ./build/mini_ai_test 'Hello C++20'
+          ./build/mini_ai_test
           ./build/mini_ai_unit
 
       - name: Upload build and test outputs
