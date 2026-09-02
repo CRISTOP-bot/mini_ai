@@ -74,6 +74,24 @@ def relu(a):
     vals=[max(0,x) for x in a.data]; out=Tensor(vals,a.shape,a.requires_grad,(a,),'relu')
     out._backward=lambda: a._acc([g if x>0 else 0 for g,x in zip(out.grad,a.data)]); return out
 
+def layernorm(a, eps=1e-5):
+    """Normaliza cada fila; mejora la estabilidad sin añadir parámetros."""
+    if len(a.shape) != 2: raise ValueError('layernorm requiere una matriz')
+    rows, width = a.shape; means=[]; invs=[]; vals=[]
+    for i in range(rows):
+        row=a.data[i*width:(i+1)*width]; mean=sum(row)/width
+        var=sum((x-mean)**2 for x in row)/width; inv=1.0/math.sqrt(var+eps)
+        means.append(mean); invs.append(inv); vals += [(x-mean)*inv for x in row]
+    out=Tensor(vals,a.shape,a.requires_grad,(a,),'layernorm')
+    def back():
+        ga=[0.0]*len(a.data)
+        for i in range(rows):
+            g=out.grad[i*width:(i+1)*width]; y=vals[i*width:(i+1)*width]
+            sg=sum(g); sgy=sum(x*y for x,y in zip(g,y))
+            for j in range(width): ga[i*width+j]=invs[i]/width*(width*g[j]-sg-y[j]*sgy)
+        a._acc(ga)
+    out._backward=back; return out
+
 def softmax_rows(a, causal=False):
     T,N=a.shape; vals=[]
     for i in range(T):
