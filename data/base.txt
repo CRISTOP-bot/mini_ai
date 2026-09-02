@@ -24,7 +24,7 @@ La programación requiere paciencia. Un error no significa que el proyecto haya 
 
 Termux permite ejecutar Python en Android sin root. Este proyecto no necesita una tarjeta gráfica, CUDA, TensorFlow, PyTorch ni una API externa. El entrenamiento ocurre localmente en la CPU del teléfono. Por eso el modelo es pequeño y el proceso puede ser lento.
 
-Para entrenar, ejecuta python train.py data/train.txt. Para generar texto, ejecuta python generate.py "Hola". El archivo de pesos se guarda en models/model.bin. Si cambias el conjunto de datos, vuelve a entrenar para que los pesos reflejen los nuevos ejemplos.
+El entrenamiento y la generación se ejecutan con los binarios C++20 mini_ai_train y mini_ai_test; el checkpoint se guarda en un archivo MAI3. Si cambias el conjunto de datos, vuelve a entrenar para que los pesos reflejen los nuevos ejemplos.
 
 Una buena respuesta debe ser comprensible y no fingir seguridad cuando existe una duda. Debe usar español natural, respetar los acentos y mantener el tema de la conversación. Las respuestas de este modelo son experimentales y sirven para aprender cómo funciona una red neuronal diminuta.
 
