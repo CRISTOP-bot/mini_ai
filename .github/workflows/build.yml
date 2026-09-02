@@ -1,10 +1,55 @@
 name: C++20 build
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [cpp20-rewrite]
+  pull_request:
+    branches: [cpp20-rewrite]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Configure, build, and test C++20
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build --parallel
-      - run: ctest --test-dir build --output-on-failure
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install CMake and compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends cmake ninja-build g++ gcc
+          cmake --version
+          g++ --version
+
+      - name: Configure (CMake)
+        env:
+          CC: gcc
+          CXX: g++
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Build all C++ targets
+        run: cmake --build build --parallel 2 --target all
+
+      - name: Run tests (CTest)
+        run: ctest --test-dir build --output-on-failure --parallel 2
+
+      - name: Run command-line smoke tests
+        run: |
+          ./build/mini_ai_test 'Hello C++20'
+          ./build/mini_ai_unit
+
+      - name: Upload build and test outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp20-build-${{ github.run_id }}
+          if-no-files-found: ignore
+          path: |
+            build/
+            !build/.ninja_deps
+            !build/.ninja_log
