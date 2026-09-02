@@ -6,11 +6,11 @@
 # curl -fsSL <URL_RAW> | bash
 # En modo remoto descarga la rama cpp20-rewrite y vuelve a ejecutarse localmente.
 #
-set -euo pipefail
+set -eo pipefail
 
 REPO_URL="https://github.com/CRISTOP-bot/mini_ai"
 BRANCH="cpp20-rewrite"
-SCRIPT_SOURCE="${BASH_SOURCE[0]-}"
+SCRIPT_SOURCE="${BASH_SOURCE[0]:-}"
 SCRIPT_DIR=""
 if [[ -n "$SCRIPT_SOURCE" && -f "$SCRIPT_SOURCE" ]]; then
     SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" 2>/dev/null && pwd || true)"
