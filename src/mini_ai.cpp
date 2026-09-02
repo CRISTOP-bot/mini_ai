@@ -10,6 +10,8 @@
 namespace mini_ai {
 static float& M(Tensor& x,std::size_t i,std::size_t j){return x[i*x.shape()[1]+j];}
 static float M(const Tensor& x,std::size_t i,std::size_t j){return x[i*x.shape()[1]+j];}
+static float& M(Tensor& x,std::size_t i){return x[i];}
+static float M(const Tensor& x,std::size_t i){return x[i];}
 static void zero(std::vector<Tensor>& a){for(auto&x:a)std::fill(x.data(),x.data()+x.size(),0.f);}
 void Adam::step(std::vector<Tensor>&p,const std::vector<Tensor>&g,float lr,float b1,float b2,float eps){
  if(m_.empty()){for(auto&q:p){m_.emplace_back(q.shape());v_.emplace_back(q.shape());}}
@@ -37,7 +39,7 @@ float Model::train_batch(const Batch&b){if(b.batch==0||b.seq!=c_.seq||b.x.size()
    for(std::size_t u=0;u<S;u++)for(std::size_t d=0;d<D;d++){for(std::size_t e=0;e<D;e++){M(g_[2],e,d)+=x[u][e]*gq[u][d];M(g_[3],e,d)+=x[u][e]*gk[u][d];M(g_[4],e,d)+=x[u][e]*gv[u][d];gx[u][e]+=gq[u][d]*M(p_[2],e,d)+gk[u][d]*M(p_[3],e,d)+gv[u][d]*M(p_[4],e,d);}} for(std::size_t u=0;u<S;u++)for(std::size_t d=0;d<D;d++){int id=b.x[n*S+u];M(g_[1],u,d)+=gx[u][d];M(g_[0],id,d)+=gx[u][d];}
   }
  }
- update();return loss/float(b.batch*S);}
+ update();return loss/float(b.batch*c_.seq);}
 void Model::update(){adam_->step(p_,g_);++steps_;}
 std::vector<float> Model::logits(const std::vector<int>&ids){
  if(ids.empty()) return std::vector<float>(c_.vocab,0.f); std::vector<int>x=ids; if(x.size()>c_.seq)x.erase(x.begin(),x.end()-c_.seq);
