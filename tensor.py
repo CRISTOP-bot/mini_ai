@@ -88,7 +88,12 @@ def softmax_rows(a, causal=False):
     out._backward=back; return out
 
 def cross_entropy(logits, targets):
-    T,V=logits.shape; probs=[]; loss=0.0
+    T,V=logits.shape
+    if T == 0 or len(targets) != T:
+        raise ValueError('cross_entropy requiere una etiqueta por fila')
+    if any(int(t) < 0 or int(t) >= V for t in targets):
+        raise ValueError('las etiquetas están fuera del vocabulario')
+    probs=[]; loss=0.0
     for i in range(T):
         row=logits.data[i*V:(i+1)*V]; mx=max(row); ex=[math.exp(x-mx) for x in row]; z=sum(ex); p=[x/z for x in ex]; probs+=p; loss-=math.log(max(p[int(targets[i])],1e-12))
     out=Tensor([loss/T],(1,),logits.requires_grad,(logits,),'cross_entropy')
