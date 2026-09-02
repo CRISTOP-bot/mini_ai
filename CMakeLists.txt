@@ -4,6 +4,11 @@ project(mini_ai_cpp20 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+option(MINI_AI_SANITIZERS "Enable address/undefined behavior sanitizers" OFF)
+if(MINI_AI_SANITIZERS)
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address,undefined)
+endif()
 
 add_library(mini_ai STATIC
     src/mini_ai.cpp
@@ -17,7 +22,11 @@ target_link_libraries(mini_ai_train PRIVATE mini_ai)
 add_executable(mini_ai_test src/apps/test.cpp)
 target_link_libraries(mini_ai_test PRIVATE mini_ai)
 
+add_executable(mini_ai_generate src/apps/generate.cpp)
+target_link_libraries(mini_ai_generate PRIVATE mini_ai)
+
 enable_testing()
 add_executable(mini_ai_unit tests/unit.cpp)
 target_link_libraries(mini_ai_unit PRIVATE mini_ai)
 add_test(NAME unit COMMAND mini_ai_unit)
+add_test(NAME generate_smoke COMMAND mini_ai_generate --help)

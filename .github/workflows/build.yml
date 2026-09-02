@@ -42,6 +42,9 @@ jobs:
         run: |
           ./build/mini_ai_test
           ./build/mini_ai_unit
+          ./build/mini_ai_generate --help
+          ./build/mini_ai_train data/base.txt build/smoke.ckpt
+          ./build/mini_ai_generate --checkpoint build/smoke.ckpt --tokens 2 --temperature 0.8 "Hola"
 
       - name: Upload build and test outputs
         if: always()
@@ -53,3 +56,14 @@ jobs:
             build/
             !build/.ninja_deps
             !build/.ninja_log
+
+  sanitizers:
+    name: Address/UB sanitizer tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure sanitized build
+        run: cmake -S . -B build-asan -G Ninja -DCMAKE_BUILD_TYPE=Debug -DMINI_AI_SANITIZERS=ON
+      - name: Build and test
+        run: cmake --build build-asan --parallel 2 && ctest --test-dir build-asan --output-on-failure
