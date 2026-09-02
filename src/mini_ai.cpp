@@ -271,7 +271,8 @@ float Model::train_batch(const Batch &b) {
         }
     }
     update();
-    return loss / float(b.batch * S);
+    // Average the loss over every token in the batch.
+    return loss / float(b.batch * c_.seq);
 }
 void Model::update() {
     adam_->step(p_, g_);
