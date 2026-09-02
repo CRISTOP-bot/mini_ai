@@ -1,4 +1,4 @@
-import sys, os, math
+import sys, os, math, gc
 from config import *
 from dataset import TextDataset
 from model import TinyTransformer
@@ -14,6 +14,10 @@ def main():
         xs,ys=data.sample(1); opt.zero_grad(); logits=model.forward(xs[0]); loss=cross_entropy(logits,ys[0]); loss.backward()
         for p in model.params: p.grad=[max(-1.0,min(1.0,g)) for g in p.grad]
         opt.step()
+        # Las closures del grafo de autograd forman ciclos; recogerlos evita
+        # que la RAM crezca indefinidamente en sesiones largas de Termux.
+        if step % 10 == 0:
+            gc.collect()
         if step==1 or step%PRINT_EVERY==0: print(f'Step {step}/{steps}\nLoss: {loss.data[0]:.4f}')
         if step%CHECKPOINT_EVERY==0: save_model(model,'models/model.bin')
     save_model(model,'models/model.bin'); print('Guardado en models/model.bin')
