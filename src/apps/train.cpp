@@ -1,6 +1,8 @@
 #include "mini_ai/mini_ai.hpp"
 
-#include <fstream><iostream><iterator>
+#include <fstream>
+#include <iostream>
+#include <iterator>
 using namespace mini_ai;
 int main(int argc, char **argv) {
     std::string file = argc > 1 ? argv[1] : "../data/train.txt",
