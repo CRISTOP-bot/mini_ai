@@ -10,7 +10,11 @@ set -euo pipefail
 
 REPO_URL="https://github.com/CRISTOP-bot/mini_ai"
 BRANCH="cpp20-rewrite"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)"
+SCRIPT_SOURCE="${BASH_SOURCE[0]-}"
+SCRIPT_DIR=""
+if [[ -n "$SCRIPT_SOURCE" && -f "$SCRIPT_SOURCE" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" 2>/dev/null && pwd || true)"
+fi
 
 say() { printf '\n[mini_ai] %s\n' "$1"; }
 
