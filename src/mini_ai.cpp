@@ -18,6 +18,12 @@ static float &M(Tensor &x, std::size_t i, std::size_t j) {
 static float M(const Tensor &x, std::size_t i, std::size_t j) {
     return x[i * x.shape()[1] + j];
 }
+static float &M(Tensor &x, std::size_t i) {
+    return x[i];
+}
+static float M(const Tensor &x, std::size_t i) {
+    return x[i];
+}
 static void zero(std::vector<Tensor> &a) {
     for (auto &x : a)
         std::fill(x.data(), x.data() + x.size(), 0.f);
